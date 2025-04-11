@@ -114,21 +114,28 @@ elif choice == "Store Data":
     if not st.session_state.authenticated_user:
         st.warning("🔐 Please login first.")
     else:
-        if st.session_state.authenticated_user not in stored_data:
-            st.error("⚠️ Logged-in user not found in stored data.")
-        else:
-            st.subheader("📦 Store Encrypted Data")
-            data = st.text_area("Enter data to encrypt")
-            passkey = st.text_input("Encryption key (passphrase)", type="password")
+        st.subheader("📦 Store Encrypted Data")
+        data = st.text_area("Enter data to encrypt")
+        passkey = st.text_input("Encryption key (passphrase)", type="password")
 
-            if st.button("Encrypt And Save"):
-                if data and passkey:
-                    encrypted = encrypt_text(data, passkey)
-                    stored_data[st.session_state.authenticated_user]["data"].append(encrypted)
-                    save_data(stored_data)
-                    st.success("✅ Data encrypted and saved successfully!")
-                else:
-                    st.error("All fields are required.")
+        if st.button("Encrypt And Save"):
+            if data and passkey:
+                encrypted = encrypt_text(data, passkey)
+
+                if st.session_state.authenticated_user not in stored_data:
+                    stored_data[st.session_state.authenticated_user] = {
+                        "password": hash_password("temp"),  # default temp password to avoid crash
+                        "data": []
+                    }
+
+                if "data" not in stored_data[st.session_state.authenticated_user]:
+                    stored_data[st.session_state.authenticated_user]["data"] = []
+
+                stored_data[st.session_state.authenticated_user]["data"].append(encrypted)
+                save_data(stored_data)
+                st.success("✅ Data encrypted and saved successfully!")
+            else:
+                st.error("All fields are required.")
 
 elif choice == "Retrieve Data":
     if not st.session_state.authenticated_user:
